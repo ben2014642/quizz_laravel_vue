@@ -1,26 +1,55 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <!-- <DefaultLayout /> -->
+    <router-view></router-view>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import { authenStore } from "./store/authenStore";
+import { onMounted } from "vue";
+import DestroyAuth from "./utils/DestroyAuth";
 
 export default {
-  name: 'App',
-  components: {
-    HelloWorld
-  }
+    name: 'App',
+    setup() {
+        const auth = authenStore();
+        // axios.defaults.headers.common['Access-Control-Allow-Origin'] = '*';
+        axios.interceptors.response.use(response => {
+            return response;
+        }, error => {
+            if (error.response.status === 401) {
+                DestroyAuth();
+
+            }
+            return Promise.reject(error);
+
+
+        })
+        onMounted(async () => {
+            console.log('aa');
+            if (auth.authenticated) {
+                try {
+                    const res = await axios.get('/api/auth/user');
+                    const user = res.data;
+                    auth.onSetUser(user);
+                } catch (error) {
+
+                }
+
+            }
+        })
+    }
 }
 </script>
 
 <style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+a {
+    text-decoration: none !important;
+    color: inherit;
 }
 </style>
